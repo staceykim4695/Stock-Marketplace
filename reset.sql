@@ -17,7 +17,7 @@ CREATE TABLE portfolios (
 CREATE TABLE orders (
   id SERIAL PRIMARY KEY,
   trader_id INTEGER REFERENCES traders NOT NULL,
-  type NOT NULL,
+  type TEXT NOT NULL,
   ticker TEXT NOT NULL,
   quantity INTEGER NOT NULL,
   price INTEGER NOT NULL,

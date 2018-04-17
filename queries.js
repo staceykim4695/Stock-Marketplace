@@ -89,7 +89,7 @@ const portfolios = {
   get: async () => {
     return await pool.query(`SELECT * FROM portfolios FOR UPDATE`);
   },
-
+  
   getByTicker: async (trader, ticker) => {
     return await pool.query(`SELECT quantity FROM portfolios WHERE trader_id = $1 AND ticker = $2 FOR UPDATE`, [trader, ticker]);
   },

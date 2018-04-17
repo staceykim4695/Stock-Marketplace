@@ -39,7 +39,16 @@ router.post('/orders', async function(req, res, next) {
 router.get('/portfolios', async function(req, res, next) {
   try {
     let allPortfolios = await portfolios.get();
-    res.json(allTraderPortfolios.rows);
+    res.json(allPortfolios.rows);
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.get('/portfolios/:trader_id/:ticker', async function(req, res, next) {
+  try {
+    let traderPortfolios = await portfolios.getByTicker(req.params.trader_id, req.params.ticker);
+    res.json(traderPortfolios.rows);
   } catch (e) {
     next(e);
   }
