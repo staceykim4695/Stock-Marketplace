@@ -89,7 +89,7 @@ const portfolios = {
   get: async () => {
     return await pool.query(`SELECT * FROM portfolios FOR UPDATE`);
   },
-  
+
   getByTicker: async (trader, ticker) => {
     return await pool.query(`SELECT quantity FROM portfolios WHERE trader_id = $1 AND ticker = $2 FOR UPDATE`, [trader, ticker]);
   },
@@ -102,8 +102,8 @@ const portfolios = {
         return await client.query(`UPDATE portfolios SET quantity = quantity + $1 WHERE trader_id = $2 AND ticker = $3`,
           [order.fulfilled, order.trader_id, order.ticker])
         } else {
-          return await client.query(`UPDATE portfolios SET quantity = quantity - $1 WHERE trader_id = $2 AND ticker = $3`,
-            [order.fulfilled, order.trader_id, order.ticker])
+          return await client.query(`UPDATE portfolios SET quantity = $1 WHERE trader_id = $2 AND ticker = $3`,
+            [order.quantity - order.fulfilled, order.trader_id, order.ticker])
           }
     }
   },

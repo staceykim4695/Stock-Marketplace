@@ -17,8 +17,8 @@ app.use(function(err, req, res, next) {
   });
 });
 
-app.listen(3000, function() {
-  console.log('Started listening on 3000');
+app.listen(process.env.PORT || 3000, function() {
+  console.log('Started listening on ' + (process.env.PORT || 3000));
 });
 
 module.exports = app;

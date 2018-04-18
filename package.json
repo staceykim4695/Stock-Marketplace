@@ -4,7 +4,8 @@
   "description": "Starter files for Horizons stock market exercise",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --exit tests.js"
+    "test": "mocha --exit tests.js",
+    "isolation": "mocha -t 10000ms --exit testsIsolation.js"
   },
   "author": "Horizons School of Technology",
   "license": "UNLICENSED",

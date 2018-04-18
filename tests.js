@@ -252,6 +252,129 @@ describe('Asks Following Bids', function() {
   });
 });
 
+describe('Delayed Order Fulfillment', function() {
+  beforeEach(async function() {
+    await resetSchema();
+    await db.query(`INSERT INTO traders (id, name) VALUES
+    (6, 'ana'),
+    (7, 'chris'),
+    (8, 'barb')`);
+    await db.query(`INSERT INTO portfolios (trader_id, ticker, quantity) VALUES
+    (6, 'X', 10),
+    (6, '$', 1000),
+    (7, 'Y', 10),
+    (8, '$', 1000),
+    (8, 'Y', 10),
+    (8, 'Z', 10)`
+    );
+  });
+
+  it('bids following asks', async function() {
+    let first = chai.request(app)
+    .post('/orders')
+    .send({
+      trader_id: 6,
+      ticker: 'X',
+      type: 'ask',
+      quantity: 2,
+      price: 10
+    });
+
+    let second = chai.request(app)
+    .post('/orders')
+    .send({
+      trader_id: 8,
+      ticker: 'X',
+      type: 'bid',
+      quantity: 2,
+      price: 9
+    });
+
+    let third = chai.request(app)
+    .post('/orders')
+    .send({
+      trader_id: 8,
+      ticker: 'Y',
+      type: 'bid',
+      quantity: 2,
+      price: 10
+    });
+
+    await Promise.all([first, second, third]);
+
+    let orders = await chai.request(app)
+      .get('/orders');
+    orders.body.orders.map((order) => {
+      expect(order.fulfilled).to.equal(0);
+    });
+
+    let fourth = await chai.request(app)
+    .post('/orders')
+    .send({
+      trader_id: 8,
+      ticker: 'X',
+      type: 'bid',
+      quantity: 1,
+      price: 10
+    });
+
+    orders = await chai.request(app)
+      .get('/orders');
+     orders.body.orders.map((order) => {
+       if(order.trader_id === 6) expect(order.fulfilled).to.equal(1);
+       if(order.quantity === 1) expect(order.fulfilled).to.equal(1);
+     });
+
+     let portfolio6 = await chai.request(app)
+      .get('/portfolios/6/$');
+     let portfolio8 = await chai.request(app)
+      .get('/portfolios/8/$')
+
+     expect(portfolio6.body[0].quantity).to.equal(1010);
+     expect(portfolio8.body[0].quantity).to.equal(990);
+
+     let fifth = await chai.request(app)
+     .post('/orders')
+     .send({
+       trader_id: 8,
+       ticker: 'X',
+       type: 'bid',
+       quantity: 1,
+       price: 10
+     });
+
+     orders = await chai.request(app)
+       .get('/orders');
+      orders.body.orders.map((order) => {
+        if(order.trader_id === 6) expect(order.fulfilled).to.equal(2);
+        if(order.quantity === 1) expect(order.fulfilled).to.equal(1);
+      });
+
+      portfolio6 = await chai.request(app)
+       .get('/portfolios/6/$');
+      portfolio8 = await chai.request(app)
+       .get('/portfolios/8/$')
+
+      expect(portfolio6.body[0].quantity).to.equal(1020);
+      expect(portfolio8.body[0].quantity).to.equal(980);
+
+      let last = await chai.request(app)
+      .post('/orders')
+      .send({
+        trader_id: 8,
+        ticker: 'X',
+        type: 'bid',
+        quantity: 1,
+        price: 10
+      });
+
+      orders = await chai.request(app)
+        .get('/orders');
+      //the last order should not be fulfilled
+      expect(orders.body.orders[orders.body.orders.length-1].fulfilled).to.equal(0);
+  });
+});
+
 // it('found all portfolios', async function() {
 //   let allPortfolios = await chai.request(app)
 //   .get('/portfolios');
